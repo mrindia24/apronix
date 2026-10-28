@@ -1,0 +1,405 @@
+// Apronix Tech — database schema
+// PostgreSQL + Prisma ORM
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Auth & users
+// ---------------------------------------------------------------------------
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  role         Role      @default(ADMIN)
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  sessions AdminSession[]
+  posts    BlogPost[]     @relation("PostAuthor")
+  notes    LeadNote[]
+  media    MediaAsset[]
+
+  @@index([role])
+}
+
+model AdminSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      AdminUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// ---------------------------------------------------------------------------
+// Content
+// ---------------------------------------------------------------------------
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ServiceKey {
+  SOCIAL_MEDIA_MANAGEMENT
+  SHOPIFY_DEVELOPMENT
+  WORDPRESS_DEVELOPMENT
+}
+
+model Service {
+  id              String        @id @default(cuid())
+  key             ServiceKey    @unique
+  slug            String        @unique
+  name            String
+  shortName       String
+  tagline         String
+  summary         String        @db.Text
+  heroHeadline    String
+  heroDescription String        @db.Text
+  // Renderable page sections (JSON): problems, deliverables, benefits, workflow, faqs, relatedKeys...
+  sections        Json          @default("{}")
+  icon            String        @default("sparkles")
+  accent          String        @default("#FF3038")
+  order           Int           @default(0)
+  status          PublishStatus @default(PUBLISHED)
+  seoTitle        String?
+  seoDescription  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  projects PortfolioProject[]
+  leads    Lead[]
+
+  @@index([status, order])
+}
+
+model PortfolioProject {
+  id               String        @id @default(cuid())
+  slug             String        @unique
+  title            String
+  clientName       String?
+  industry         String?
+  serviceCategory  ServiceKey?
+  categoryLabel    String
+  shortDescription String        @db.Text
+  overview         String        @db.Text
+  brief            String?       @db.Text
+  challenges       String?       @db.Text
+  strategy         String?       @db.Text
+  solution         String?       @db.Text
+  technologies     String[]      @default([])
+  deliverables     String[]      @default([])
+  projectUrl       String?
+  launchDate       DateTime?
+  serviceRef       String?
+  service          Service?      @relation(fields: [serviceRef], references: [id], onDelete: SetNull)
+  featuredImage    String?
+  featuredImageAlt String?
+  featured         Boolean       @default(false)
+  status           PublishStatus @default(DRAFT)
+  // Sample/seed content is clearly flagged and hidden from public "real work" claims
+  isSampleContent  Boolean       @default(false)
+  order            Int           @default(0)
+  seoTitle         String?
+  seoDescription   String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  images ProjectImage[]
+
+  @@index([status, featured, order])
+  @@index([serviceCategory])
+  @@index([serviceRef])
+}
+
+model ProjectImage {
+  id        String           @id @default(cuid())
+  projectId String
+  project   PortfolioProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String
+  caption   String?
+  width     Int?
+  height    Int?
+  order     Int              @default(0)
+  createdAt DateTime         @default(now())
+
+  @@index([projectId, order])
+}
+
+model BlogCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  name        String
+  description String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts BlogPost[]
+}
+
+model BlogTag {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  posts BlogPostTag[]
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+}
+
+model BlogPost {
+  id              String        @id @default(cuid())
+  slug            String        @unique
+  title           String
+  excerpt         String        @db.Text
+  // Markdown body. Rendered through a sanitising renderer.
+  content         String        @db.Text
+  coverImage      String?
+  coverImageAlt   String?
+  categoryId      String?
+  category        BlogCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  authorId        String?
+  author          AdminUser?    @relation("PostAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorName      String?
+  status          PublishStatus @default(DRAFT)
+  featured        Boolean       @default(false)
+  readingMinutes  Int           @default(1)
+  publishedAt     DateTime?
+  scheduledFor    DateTime?
+  seoTitle        String?
+  seoDescription  String?
+  canonicalUrl    String?
+  isSampleContent Boolean       @default(false)
+  viewCount       Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  tags BlogPostTag[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+  @@index([featured])
+}
+
+model Testimonial {
+  id              String   @id @default(cuid())
+  quote           String   @db.Text
+  authorName      String
+  authorRole      String?
+  company         String?
+  avatarUrl       String?
+  rating          Int?
+  approved        Boolean  @default(false)
+  isSampleContent Boolean  @default(false)
+  order           Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([approved, order])
+}
+
+model FAQ {
+  id        String        @id @default(cuid())
+  question  String
+  answer    String        @db.Text
+  // null = shown on the homepage FAQ; otherwise scoped to a service page
+  scope     ServiceKey?
+  order     Int           @default(0)
+  status    PublishStatus @default(PUBLISHED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([scope, status, order])
+}
+
+// ---------------------------------------------------------------------------
+// Pricing
+// ---------------------------------------------------------------------------
+
+/// A pricing tier shown on /pricing. Prices are indicative and editable in the
+/// dashboard; nothing here is a binding quote.
+model PricingPlan {
+  id              String        @id @default(cuid())
+  name            String
+  tagline         String        @default("")
+  /// Display strings, e.g. "₹35,000" or "From ₹1,20,000" — kept as text so the
+  /// agency is not forced into a numeric shape while pricing is still indicative.
+  price           String        @default("")
+  priceNote       String        @default("")
+  billingNote     String        @default("")
+  /// Optional per-service link (Social / Shopify / WordPress).
+  serviceKey      ServiceKey?
+  highlighted     Boolean       @default(false)
+  ctaLabel        String        @default("Start an enquiry")
+  ctaHref         String        @default("/contact")
+  notIncluded     Json?
+  order           Int           @default(0)
+  status          PublishStatus @default(PUBLISHED)
+  isSampleContent Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  features PricingFeature[]
+
+  @@index([status, order])
+}
+
+model PricingFeature {
+  id       String      @id @default(cuid())
+  planId   String
+  plan     PricingPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  label    String
+  included Boolean     @default(true)
+  order    Int         @default(0)
+
+  @@index([planId, order])
+}
+
+// ---------------------------------------------------------------------------
+// Leads
+// ---------------------------------------------------------------------------
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  WON
+  LOST
+  SPAM
+}
+
+enum LeadSource {
+  CONTACT_PAGE
+  SERVICE_PAGE
+  HOME_CTA
+  FOOTER
+  OTHER
+}
+
+model Lead {
+  id          String      @id @default(cuid())
+  reference   String      @unique
+  fullName    String
+  email       String
+  phone       String?
+  company     String?
+  service     String // stored label for historical accuracy
+  serviceKey  ServiceKey?
+  serviceRef  String?
+  serviceLink Service?    @relation(fields: [serviceRef], references: [id], onDelete: SetNull)
+  budget      String?
+  timeline    String?
+  message     String      @db.Text
+  consent     Boolean     @default(false)
+  status      LeadStatus  @default(NEW)
+  source      LeadSource  @default(CONTACT_PAGE)
+  landingPage String?
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  ipHash      String?
+  userAgent   String?
+  emailState  String      @default("PENDING") // PENDING | SENT | FAILED | DISABLED
+  emailError  String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  notes LeadNote[]
+
+  @@index([status, createdAt])
+  @@index([serviceKey])
+  @@index([createdAt])
+  @@index([email])
+}
+
+model LeadNote {
+  id        String     @id @default(cuid())
+  leadId    String
+  lead      Lead       @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  authorId  String?
+  author    AdminUser? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body      String     @db.Text
+  createdAt DateTime   @default(now())
+
+  @@index([leadId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Media & site configuration
+// ---------------------------------------------------------------------------
+
+model MediaAsset {
+  id           String     @id @default(cuid())
+  filename     String
+  originalName String
+  url          String
+  mimeType     String
+  sizeBytes    Int
+  width        Int?
+  height       Int?
+  alt          String?
+  storage      String     @default("local") // local | s3 | vercel-blob
+  uploadedById String?
+  uploadedBy   AdminUser? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  createdAt    DateTime   @default(now())
+
+  @@index([createdAt])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+model Redirect {
+  id         String   @id @default(cuid())
+  fromPath   String   @unique
+  toPath     String
+  statusCode Int      @default(308)
+  createdAt  DateTime @default(now())
+}
+
+model PageView {
+  id        String   @id @default(cuid())
+  path      String
+  referrer  String?
+  createdAt DateTime @default(now())
+
+  @@index([path, createdAt])
+  @@index([createdAt])
+}

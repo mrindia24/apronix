@@ -1,0 +1,576 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: 'Manrope';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url('/fonts/manrope-latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+      U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212,
+      U+2215, U+FEFF, U+FFFD;
+  }
+  @font-face {
+    font-family: 'Manrope';
+    font-style: normal;
+    font-weight: 200 800;
+    font-display: swap;
+    src: url('/fonts/manrope-latin-ext.woff2') format('woff2');
+    unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+      U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  }
+
+  :root {
+    --font-manrope: 'Manrope';
+    --brand: #e01f27;
+    --ink: #08090b;
+    --ink-soft: #111318;
+    --line: #1d2027;
+    --shell: 1240px;
+    --header-h: 76px;
+  }
+
+  * {
+    @apply border-ink-line;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 24px);
+  }
+
+  body {
+    @apply bg-ink font-sans text-white antialiased;
+    font-feature-settings: 'ss01' on, 'cv11' on;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-balance font-semibold tracking-[-0.02em];
+    text-wrap: balance;
+  }
+
+  ::selection {
+    background: rgba(255, 48, 56, 0.28);
+    color: #fff;
+  }
+
+  /* Visible focus for keyboard users, never removed */
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  /* Respect reduced motion everywhere */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-shell px-5 sm:px-7 lg:px-10;
+  }
+
+  .section {
+    /* Mobile-first rhythm: 56px blocks read as deliberate rather than cramped */
+    @apply py-14 sm:py-20 lg:py-28;
+  }
+
+  .eyebrow {
+    @apply inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-mute-onDark;
+  }
+
+  /* Small helpers so low-emphasis text still clears WCAG AA on dark surfaces */
+  .text-faint {
+    @apply text-white/60;
+  }
+
+  .eyebrow-light {
+    @apply inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-mute-onLight;
+  }
+
+  .dot {
+    @apply inline-block h-1.5 w-1.5 flex-none rounded-full bg-brand;
+  }
+
+  .card-dark {
+    @apply rounded-3xl border border-white/[0.07] bg-ink-soft shadow-card;
+  }
+
+  .link-underline {
+    @apply relative inline-block after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-brand after:transition-all after:duration-300 hover:after:w-full;
+  }
+
+  /* Light section wrapper used by article bodies and policy pages */
+  .paper {
+    @apply bg-white text-ink;
+  }
+
+  .prose-apronix {
+    @apply text-[1.0625rem] leading-[1.75] text-mute-onLight;
+  }
+
+  .skip-link {
+    @apply sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-brand focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  .grain {
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+    background-size: 3px 3px;
+  }
+  .grid-lines {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+  .radial-brand {
+    background: radial-gradient(60% 60% at 70% 20%, rgba(255, 48, 56, 0.22) 0%, rgba(8, 9, 11, 0) 70%);
+  }
+  .mask-fade-r {
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Reveal-on-scroll (JS adds .is-visible). No JS → content stays visible. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform;
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+.no-js [data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Branded loading screen (src/components/site/loading-screen.tsx)
+   Pure CSS so it paints correctly on the very first HTML byte, before hydration.
+   --------------------------------------------------------------------------- */
+@keyframes apronix-ring-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes apronix-glow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes apronix-bar-slide {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(430%);
+  }
+}
+
+@keyframes apronix-mark-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.loading-glow {
+  background: radial-gradient(circle at 50% 50%, rgba(255, 48, 56, 0.5) 0%, rgba(255, 48, 56, 0) 68%);
+  animation: apronix-glow-pulse 2.6s ease-in-out infinite;
+}
+
+/* Conic arc masked into a hairline ring: the brand's "loading sweep". */
+.loading-ring {
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 48, 56, 0) 0deg,
+    rgba(255, 48, 56, 0.05) 200deg,
+    rgba(255, 48, 56, 0.85) 330deg,
+    #ff3038 355deg,
+    rgba(255, 48, 56, 0) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 1.5px), #000 calc(100% - 1.5px));
+  animation: apronix-ring-spin 1.5s linear infinite;
+}
+
+.loading-mark {
+  animation: apronix-mark-rise 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.loading-bar {
+  animation: apronix-bar-slide 1.35s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+/* The boot overlay must never trap a visitor: if JS is disabled or fails, it
+   fades itself out on a CSS timer so the page underneath is always reachable. */
+#apronix-boot {
+  animation: apronix-boot-dismiss 0.45s ease-out 2.8s forwards;
+}
+
+@keyframes apronix-boot-dismiss {
+  to {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-ring,
+  .loading-glow,
+  .loading-bar,
+  .loading-mark,
+  #apronix-boot {
+    animation: none;
+  }
+  .loading-ring {
+    /* Keep a static brand arc instead of a spinner */
+    background: conic-gradient(from 200deg, rgba(255, 48, 56, 0) 0deg, #ff3038 300deg, rgba(255, 48, 56, 0) 360deg);
+  }
+  .loading-bar {
+    /* Static, partially filled progress line */
+    transform: none;
+    width: 40%;
+  }
+  #apronix-boot {
+    display: none;
+  }
+}
+
+/* Chat widget typing indicator */
+@keyframes apronix-chat-dot {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+.chat-dot {
+  animation: apronix-chat-dot 1.1s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-dot { animation: none; opacity: 0.6; }
+}
+
+/* ---------------------------------------------------------------------------
+   Chat mascot "Apri" — src/components/site/chat-mascot.tsx
+   Squash-and-stretch hop keeps the character feeling alive rather than a
+   moving PNG. All motion is disabled for prefers-reduced-motion.
+   --------------------------------------------------------------------------- */
+
+@keyframes apri-arrive {
+  0% {
+    transform: translateY(96px) scale(0.7);
+    opacity: 0;
+  }
+  70% {
+    transform: translateY(-8px) scale(1.04);
+    opacity: 1;
+  }
+  85% {
+    transform: translateY(2px) scale(0.99);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes apri-hop {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  12% {
+    transform: translateY(0) scale(1.08, 0.9); /* anticipation squash */
+  }
+  38% {
+    transform: translateY(-22px) scale(0.95, 1.07); /* airborne */
+  }
+  58% {
+    transform: translateY(0) scale(1.07, 0.92); /* landing squash */
+  }
+  72% {
+    transform: translateY(-9px) scale(0.99, 1.02); /* small second bounce */
+  }
+  86% {
+    transform: translateY(0) scale(1.03, 0.97);
+  }
+}
+
+@keyframes apri-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.45;
+  }
+  38% {
+    transform: scaleX(0.6);
+    opacity: 0.2;
+  }
+  58% {
+    transform: scaleX(1.15);
+    opacity: 0.5;
+  }
+}
+
+@keyframes apri-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  95% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes apri-antenna {
+  0%,
+  100% {
+    transform: rotate(-7deg);
+  }
+  50% {
+    transform: rotate(7deg);
+  }
+}
+
+@keyframes apri-wave {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(-24deg);
+  }
+}
+
+.mascot-arrive {
+  animation: apri-arrive 0.75s cubic-bezier(0.22, 1.4, 0.36, 1) both;
+}
+
+.mascot-hop {
+  animation: apri-hop 1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+/* inner parts animate on their own so the hop's transform is never fought */
+.mascot-body {
+  transform-origin: 50% 92%;
+}
+.mascot-shadow {
+  transform-origin: 50% 50%;
+  animation: apri-shadow 1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+.mascot-hop .mascot-shadow {
+  animation: apri-shadow 1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+.mascot-eye {
+  transform-origin: 50% 50%;
+  animation: apri-blink 5.5s ease-in-out 1.2s infinite;
+}
+.mascot-antenna {
+  transform-origin: 36px 17px;
+  animation: apri-antenna 2.6s ease-in-out infinite;
+}
+.mascot-arm-right {
+  transform-origin: 63px 38px;
+  animation: apri-wave 2.6s ease-in-out infinite;
+}
+.mascot-arrive .mascot-body,
+.mascot-hop .mascot-body {
+  transform-origin: 50% 92%;
+}
+
+/* wave once on arrival, then settle */
+.mascot-arrive .mascot-arm-right {
+  animation: apri-wave 0.6s ease-in-out 3;
+}
+
+/* legs tuck slightly at the top of the hop, feet stay planted otherwise */
+@keyframes apri-legs {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  38% {
+    transform: translateY(-3px);
+  }
+  58% {
+    transform: translateY(0);
+  }
+}
+.mascot-hop .mascot-legs {
+  animation: apri-legs 1s cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mascot-hop .mascot-legs {
+    animation: none;
+  }
+}
+
+.mascot-bubble-tail {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-arrive,
+  .mascot-hop,
+  .mascot-shadow,
+  .mascot-eye,
+  .mascot-antenna,
+  .mascot-arm-right,
+  .mascot-arrive .mascot-arm-right {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Chat panel — glassmorphism
+   Layered translucency + backdrop blur so the page blurs behind the panel
+   instead of bleeding through it as sharp text. Fallbacks below keep text
+   legible in browsers without backdrop-filter support.
+   --------------------------------------------------------------------------- */
+
+.chat-glass {
+  background:
+    linear-gradient(180deg, rgba(24, 27, 34, 0.72) 0%, rgba(14, 16, 21, 0.62) 100%);
+  -webkit-backdrop-filter: blur(22px) saturate(165%);
+  backdrop-filter: blur(22px) saturate(165%);
+  box-shadow:
+    0 40px 90px -24px rgba(0, 0, 0, 0.92),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.04);
+}
+
+/* Sheen: a soft diagonal highlight across the top-left of the pane */
+.chat-glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(255, 255, 255, 0.03) 28%,
+    transparent 55%
+  );
+}
+
+/* Brand bloom in the corner so the glass has something to catch */
+.chat-glass::after {
+  content: '';
+  position: absolute;
+  top: -70px;
+  right: -60px;
+  height: 190px;
+  width: 190px;
+  pointer-events: none;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(255, 48, 56, 0.22) 0%, transparent 70%);
+}
+
+.chat-glass-header {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+.chat-glass-log {
+  /* Very light scrim purely to lift text off whatever is blurred behind */
+  background: linear-gradient(180deg, rgba(8, 9, 11, 0.16) 0%, rgba(8, 9, 11, 0.34) 100%);
+}
+
+.chat-glass-bubble {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.055) 100%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.chat-glass-chip {
+  background: rgba(255, 255, 255, 0.06);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.chat-glass-chip:hover {
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.chat-glass-composer {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+}
+
+/* No backdrop-filter → fall back to a near-opaque surface so text stays readable */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .chat-glass {
+    background: #0f1116;
+  }
+  .chat-glass-bubble {
+    background: rgba(255, 255, 255, 0.09);
+  }
+}
+
+/* Respect reduced transparency preferences where the OS exposes them */
+@media (prefers-reduced-transparency: reduce) {
+  .chat-glass {
+    background: #0f1116;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
